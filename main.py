@@ -24,20 +24,20 @@ def main():
     last_posted_day = None
     tz = timezone('EST')
     while True:
-        t = datetime.now()
-        # Post every day at 10am
-        if t.day != last_posted_day:
+        t = datetime.now(tz)
+        # Post every day at 10am (eastern time)
+        if t.day != last_posted_day and t.hour > 10:
             try:
                 text, username = most_liked_comment(API, most_recent_post_id(API))
                 img = comment_to_image(text)
                 API.uploadPhoto(img, caption=f'Submitted by @{username}')
 
                 last_posted_day = t.day
-                sleep(20*60*60) # 20 hours
+                sleep(20*60*60)  # 20 hours
             except:
                 pass
 
-        sleep(2*60) # 2 Minutes
+        sleep(2*60)  # 2 Minutes
 
 
 def most_recent_post_id(api):
@@ -71,9 +71,9 @@ def comment_to_image(comment_text):
     """Return path to square image containing the text.
        Return None on failure."""
     IMAGE_DIMENSIONS = (1080, 1080)
-    COLOR = (255, 255, 255) # White
+    COLOR = (255, 255, 255)  # White
     IMAGE_PATH = 'newest_comment_image.jpg'
-    TEXT_COLOR = (0, 0, 0, 0) # Black
+    TEXT_COLOR = (0, 0, 0, 0)  # Black
 
     img = Image.new('RGB', IMAGE_DIMENSIONS, COLOR)
     d = ImageDraw.Draw(img)
@@ -84,14 +84,12 @@ def comment_to_image(comment_text):
 
     wrapped = wrap(comment_text, width=15)
     pad = 10
-    current_h = (IMAGE_DIMENSIONS[1] - (sum([fnt.getsize(w)[1] for w in wrapped]) + pad*(len(wrapped)-1)))/2 # TODO: Refactor
+    current_h = (IMAGE_DIMENSIONS[1] - (sum([fnt.getsize(w)[1] for w in wrapped]) + pad*(len(wrapped)-1)))/2  # TODO: Refactor
     for line in wrapped:
         w, h = d.textsize(line, font=fnt)
-        d.text(((IMAGE_DIMENSIONS[0]-w)/2, current_h), line,
-                font=fnt, fill=TEXT_COLOR)
+        d.text(((IMAGE_DIMENSIONS[0]-w)/2, current_h), line, font=fnt, fill=TEXT_COLOR)
 
         current_h += h + pad
-
 
     img.save(IMAGE_PATH, "JPEG", quality=80)
 
